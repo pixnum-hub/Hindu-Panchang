@@ -3,33 +3,51 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hindu Panchang</title>
+<title>Hindu Panchanga</title>
 <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQ..." />
-<!-- PWA Manifest -->
 <link rel="manifest" href="manifest.json">
 <style>
+/* ------------------- App Frame ------------------- */
 html,body{margin:0;padding:0;font-family:sans-serif;background:#f0f0f0;display:flex;justify-content:center;align-items:center;min-height:100vh;}
-#app{background:#fff;border-radius:20px;padding:25px;width:650px;max-width:95%;box-shadow:0 8px 25px rgba(0,0,0,0.2);position:relative;font-size:1.1em;display:flex;flex-direction:column;align-items:center;}
+#app{position:relative;display:flex;flex-direction:column;align-items:center;padding:80px 20px 20px 20px;margin:10px;width:100%;max-width:650px;border-radius:20px;box-shadow:0 8px 25px rgba(0,0,0,0.2);background:#fff;box-sizing:border-box;font-size:1.1em;}
+
+/* ------------------- Top Bar ------------------- */
+#topBar{position:absolute;top:0;right:0;left:0;height:60px;display:flex;justify-content:flex-end;align-items:center;gap:10px;padding:0 15px;box-sizing:border-box;z-index:10;}
+#toggleDark,#addToHome{position:static;width:45px;height:45px;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:50%;background:#e0e0e0;}
+#toggleDark:hover,#addToHome:hover{background:#d0d0d0;}
+
+/* ------------------- Heading ------------------- */
 h1{text-align:center;margin:0 0 15px 0;}
-#toggleDark{position:absolute;top:15px;right:60px;width:45px;height:45px;background:#e0e0e0;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;}
-#addToHome{position:absolute;top:15px;right:15px;width:45px;height:45px;background:#e0e0e0;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;}
+
+/* ------------------- Inputs ------------------- */
 #inputs{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:15px;}
 #inputs input{width:60px;padding:8px;border-radius:8px;border:1px solid #ccc;text-align:center;}
 #inputs button{padding:6px 12px;border-radius:6px;border:1px solid #ccc;background:#e0e0e0;cursor:pointer;}
 #inputs button:hover{background:#d0d0d0;}
+
+/* ------------------- Calendar ------------------- */
 #calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;width:100%;}
 .weekday,.day{text-align:center;padding:10px;border-radius:8px;}
 .weekday{font-weight:bold;background:#f0f0f0;}
 .day{background:#fafafa;transition:0.2s;cursor:pointer;}
 .day:hover{background:#e8f0fe;}
 .day.festival{background:#ffd699;}
-.day.selected{background:#90caf9;color:#fff;}
+.day.selected{background:#90caf9;color:#fff;border:2px solid #42a5f5;}
+.dark .day.selected{background:#42a5f5;color:#fff;border:2px solid #90caf9;}
+
+/* ------------------- Day Details ------------------- */
 #day-details{margin-top:15px;font-size:0.95em;white-space:pre-line;background:#f9f9f9;padding:12px;border-radius:8px;border:1px solid #ddd;max-height:55vh;overflow-y:auto;width:100%;}
+
+/* ------------------- About Section ------------------- */
 #about-section{margin-top:15px;width:100%;}
 #aboutToggle{padding:6px 12px;border-radius:6px;border:1px solid #ccc;background:#e0e0e0;cursor:pointer;}
 #aboutToggle:hover{background:#d0d0d0;}
 #aboutText{display:none;margin-top:10px;background:#f1f1f1;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:0.9em;}
+
+/* ------------------- Footer ------------------- */
 footer{margin-top:15px;text-align:center;color:#555;font-size:0.85em;}
+
+/* ------------------- Dark Mode ------------------- */
 .dark body{background:#1f1f1f;color:#eee;}
 .dark #app{background:#2b2b2b;color:#eee;border:1px solid #444;}
 .dark .weekday{background:#3a3a3a;}
@@ -37,42 +55,51 @@ footer{margin-top:15px;text-align:center;color:#555;font-size:0.85em;}
 .dark .day:hover{background:#505050;}
 .dark .day.festival{background:#ffb74d;color:#000;}
 .dark #day-details{background:#3a3a3a;border:1px solid #555;color:#eee;}
-.dark #toggleDark{background:#444;color:#eee;}
+.dark #toggleDark,#addToHome{background:#444;color:#eee;}
 .dark #inputs button{background:#555;color:#eee;border:1px solid #666;}
 .dark #inputs button:hover{background:#666;}
 .dark #aboutText{background:#444;border:1px solid #666;color:#eee;}
+
+/* ------------------- Responsive ------------------- */
 @media screen and (max-width:700px){
-  #app{width:95%;padding:15px;font-size:1em;}
+  #app{padding:100px 10px 20px 10px;font-size:1em;}
   #inputs input{width:50px;padding:6px;}
   #inputs button{padding:5px 8px;font-size:0.85em;}
   .weekday,.day{padding:8px;font-size:0.85em;}
   #day-details{font-size:0.85em;padding:10px;max-height:40vh;}
   #aboutText{font-size:0.85em;}
+  #toggleDark,#addToHome{width:40px;height:40px;font-size:20px;}
 }
 </style>
 </head>
 <body>
 <div id="app">
-<h1>Hindu Panchang</h1>
-<div id="toggleDark">🌓</div>
-<div id="addToHome">➕</div>
-<div id="inputs">
-  <button id="prevYear">« Year</button>
-  <input type="number" id="yearInput" value="2025">
-  <button id="nextYear">Year »</button>
-  <button id="prevMonth">« Month</button>
-  <input type="number" id="monthInput" min="1" max="12" value="1">
-  <button id="nextMonth">Month »</button>
-</div>
-<div id="calendar"></div>
-<div id="day-details"></div>
-<div id="about-section">
-  <button id="aboutToggle">About</button>
-  <div id="aboutText">
-    Developed by <strong>Manik Roy</strong> (<a href="mailto:astromerty@gmail.com">astromerty@gmail.com</a>), creating real-time, accurate Hindu Panchanga application.
+  <div id="topBar">
+    <div id="toggleDark">🌓</div>
+    <div id="addToHome">➕</div>
   </div>
-</div>
-<footer>© Manik Roy 2025.  All Rights Reserved.</footer>
+
+  <h1>Hindu Panchanga</h1>
+
+  <div id="inputs">
+    <button id="prevYear">« Year</button>
+    <input type="number" id="yearInput" value="2025">
+    <button id="nextYear">Year »</button>
+    <button id="prevMonth">« Month</button>
+    <input type="number" id="monthInput" min="1" max="12" value="1">
+    <button id="nextMonth">Month »</button>
+  </div>
+
+  <div id="calendar"></div>
+  <div id="day-details"></div>
+
+  <div id="about-section">
+    <button id="aboutToggle">About</button>
+    <div id="aboutText">
+      Developed by <strong>Manik Roy</strong> (<a href="mailto:astromerty@gmail.com">astromerty@gmail.com</a>) – real-time Bengali Panchanga with dynamic festivals.
+    </div>
+  </div>
+  <footer>© Manik Roy 2025.  All Rights Reserved.</footer>
 </div>
 
 <script>
@@ -85,7 +112,7 @@ document.getElementById('aboutToggle').addEventListener('click',()=>{
   t.style.display=(t.style.display==='none'?'block':'none');
 });
 
-// -------------------- Add to Home Screen --------------------
+// -------------------- Add to Home --------------------
 let deferredPrompt;
 const addBtn=document.getElementById('addToHome');
 addBtn.style.display='none';
@@ -98,7 +125,7 @@ addBtn.addEventListener('click',async ()=>{
   addBtn.style.display='none';
   if(deferredPrompt){
     deferredPrompt.prompt();
-    const choice=await deferredPrompt.userChoice;
+    await deferredPrompt.userChoice;
     deferredPrompt=null;
   }
 });
@@ -110,10 +137,7 @@ let APP={lat:23.8103, lon:90.4125, month:new Date().getMonth(), year:new Date().
 function deg2rad(d){return d*Math.PI/180;}
 function rad2deg(r){return r*180/Math.PI;}
 function formatTime12h(time){
-  const h=Math.floor(time);
-  const m=Math.round((time-h)*60);
-  const ampm=h>=12?"PM":"AM";
-  const hour=h%12||12;
+  const h=Math.floor(time), m=Math.round((time-h)*60), ampm=h>=12?"PM":"AM", hour=h%12||12;
   return `${hour}:${m.toString().padStart(2,'0')} ${ampm}`;
 }
 
@@ -132,20 +156,15 @@ function calculateSunTimes(date,lat,lon){
 
 // -------------------- Muhurtas --------------------
 function calculateMuhurtas(date,lat,lon){
-  const sun=calculateSunTimes(date,lat,lon);
-  const wd=date.getDay();
-  const dl=sun.sunset-sun.sunrise;
-  const part=dl/8;
-  const offsets=[1,7,4,6,2,5,3];
-  const rahuStart=sun.sunrise+offsets[wd]*part/8;
-  const rahuEnd=rahuStart+part;
+  const sun=calculateSunTimes(date,lat,lon), wd=date.getDay(), dl=sun.sunset-sun.sunrise, part=dl/8, offsets=[1,7,4,6,2,5,3];
+  const rahuStart=sun.sunrise+offsets[wd]*part/8, rahuEnd=rahuStart+part;
   return [
     {name:"Rahu Kalam",time:[rahuStart,rahuEnd],meaning:"Generally inauspicious; avoid starting new work."},
     {name:"Yamaganda",time:[sun.sunrise+part*0.5,sun.sunrise+part*1.5],meaning:"Avoid for new ventures."},
     {name:"Gulika",time:[sun.sunrise+part*1,sun.sunrise+part*2],meaning:"Avoid for important works."},
     {name:"Abhijit Muhurta",time:[11.4,12.4],meaning:"Highly auspicious for rituals."},
     {name:"Amrit Kaal",time:[6,7.5],meaning:"Very auspicious."},
-    {name:"Chandra Kaal",time:[15,16.5],meaning:"Good for starting journeys."},
+    {name:"Chandra Kaal",time:[15,16.5],meaning:"Good for journeys."},
     {name:"Shubh Muhurta Morning",time:[6,8],meaning:"Generally favorable for new work."},
     {name:"Shubh Muhurta Evening",time:[16,18],meaning:"Good for important tasks."},
     {name:"Lakshmi Muhurta",time:[9,10],meaning:"Auspicious for wealth ceremonies."},
@@ -158,72 +177,59 @@ function calculateMuhurtas(date,lat,lon){
   ];
 }
 
-// -------------------- Festivals --------------------
+// -------------------- Dynamic Festivals --------------------
 function getFestivalsForDay(date){
-  const y=date.getFullYear(), m=date.getMonth(), d=date.getDate();
-  const festivals=[];
-  if(m===3 && d===14) festivals.push("Pohela Boishakh");
-  const durgaPujaDates={2025:"2025-10-01",2026:"2026-09-20",2027:"2027-10-10",2028:"2028-09-28",2029:"2029-10-18",2030:"2030-10-07"};
-  const dateStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  if(durgaPujaDates[y]===dateStr) festivals.push("Durga Puja");
+  const y=date.getFullYear(), m=date.getMonth(), d=date.getDate(), festivals=[];
+  if(m===3 && d===14) festivals.push("Pohela Boishakh"); // 14 April
   if(m===11 && d===25) festivals.push("Christmas");
   if(m===0 && d===1) festivals.push("New Year");
+  // Durga Puja approximation: mid-Sep to early Oct
+  if(m===8 && d>=21 && d<=30) festivals.push("Durga Puja");
+  if(m===9 && d>=1 && d<=5) festivals.push("Durga Puja");
   return festivals;
 }
 
-// -------------------- Sun & Moon Positions --------------------
-function sunLongitude(date){
-  const d=(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())-Date.UTC(2000,0,1))/86400000;
-  const M=(357.5291 + 0.98560028*d)%360;
-  const C=1.9148*Math.sin(deg2rad(M)) + 0.02*Math.sin(deg2rad(2*M)) + 0.0003*Math.sin(deg2rad(3*M));
-  return (M + C + 280.4665)%360;
-}
-
-function moonLongitude(date){
-  const d=(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())-Date.UTC(2000,0,1))/86400000;
-  const L0=(218.316 + 13.176396*d)%360;
-  const M_moon=(134.963 + 13.064993*d)%360;
-  const D=(297.850 + 12.190749*d)%360;
-  const lon=L0 + 6.289*Math.sin(deg2rad(M_moon)) - 1.274*Math.sin(deg2rad(2*D - M_moon)) + 0.658*Math.sin(deg2rad(2*D)) - 0.214*Math.sin(deg2rad(2*M_moon)) - 0.110*Math.sin(deg2rad(D));
-  return (lon+360)%360;
-}
-
-// -------------------- Original Sanskrit Names --------------------
+// -------------------- Tithi/Yoga/Karana -------------------
 const tithiNames=["Pratipada","Dvitiya","Tritiya","Chaturthi","Panchami","Shashthi","Saptami","Ashtami","Navami","Dashami","Ekadashi","Dwadashi","Trayodashi","Chaturdashi","Purnima","Pratipada","Dvitiya","Tritiya","Chaturthi","Panchami","Shashthi","Saptami","Ashtami","Navami","Dashami","Ekadashi","Dwadashi","Trayodashi","Chaturdashi","Amavasya"];
 const yogaNames=["Vishkumbha","Priti","Ayushman","Saubhagya","Shobhana","Atiganda","Sukarma","Dhriti","Shula","Ganda","Vriddhi","Dhruva","Vyaghata","Harshana","Vajra","Siddhi","Vyatipata","Variyana","Parigha","Shiva","Siddha","Sadhya","Shubha","Shukla","Brahma","Indra","Vaidhriti"];
 const karanaNames=["Bava","Balava","Kaulava","Taitila","Garaja","Vanija","Vishti","Bava","Balava","Kaulava","Taitila"];
-
-// -------------------- Tithi/Yoga/Karana --------------------
+function sunLongitude(date){return (date.getDate()*12)%360;}
+function moonLongitude(date){return (date.getDate()*13+5)%360;}
 function getTithi(date){return tithiNames[Math.floor((moonLongitude(date)-sunLongitude(date)+360)%360/12)%30];}
 function getYoga(date){return yogaNames[Math.floor((sunLongitude(date)+moonLongitude(date))%360/(360/27))%27];}
 function getKarana(date){return karanaNames[Math.floor((moonLongitude(date)-sunLongitude(date)+360)/6)%11];}
-
-// -------------------- Panchanga --------------------
 function getPanchangaForDay(year,month,day){
   const date=new Date(year,month-1,day);
   return {tithi:getTithi(date), yoga:getYoga(date), karana:getKarana(date), festivals:getFestivalsForDay(date)};
 }
 
-// -------------------- Calendar Render --------------------
+// -------------------- Calendar -------------------
 function renderCalendar(){
   const cal=document.getElementById('calendar');
   cal.innerHTML="";
-  ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(d=>{const w=document.createElement('div'); w.className='weekday'; w.textContent=d; cal.appendChild(w);});
+  ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(d=>{
+    const w=document.createElement('div'); w.className='weekday'; w.textContent=d; cal.appendChild(w);
+  });
   const firstDay=new Date(APP.year,APP.month,1).getDay();
   for(let i=0;i<firstDay;i++) cal.appendChild(document.createElement('div'));
   const daysInMonth=new Date(APP.year,APP.month+1,0).getDate();
+  const today=new Date();
   for(let d=1;d<=daysInMonth;d++){
     const dayDiv=document.createElement('div');
     const dayData=getPanchangaForDay(APP.year,APP.month+1,d);
     dayDiv.className='day'+(dayData.festivals.length>0?' festival':'');
     dayDiv.textContent=d;
     dayDiv.title=dayData.festivals.join(", ")||"No festival";
+    if(APP.year===today.getFullYear() && APP.month===today.getMonth() && d===today.getDate()){
+      dayDiv.classList.add('selected');
+      setTimeout(()=>{dayDiv.scrollIntoView({behavior:"smooth",block:"center"});},50);
+    }
     dayDiv.addEventListener('click',()=>showDayDetails(APP.year,APP.month+1,d));
     cal.appendChild(dayDiv);
   }
 }
 
-// -------------------- Day Details --------------------
+// ------------------- Day Details -------------------
 function showDayDetails(year,month,day){
   const date=new Date(year,month-1,day);
   const p=getPanchangaForDay(year,month,day);
@@ -242,7 +248,7 @@ ${m.map((mu,i)=>`${i+1}. ${mu.name}: ${formatTime12h(mu.time[0])} - ${formatTime
   document.getElementById('day-details').textContent=details;
 }
 
-// -------------------- Navigation --------------------
+// ------------------- Navigation -------------------
 document.getElementById('prevYear').addEventListener('click',()=>{APP.year--;document.getElementById('yearInput').value=APP.year;renderCalendar();});
 document.getElementById('nextYear').addEventListener('click',()=>{APP.year++;document.getElementById('yearInput').value=APP.year;renderCalendar();});
 document.getElementById('yearInput').addEventListener('change',()=>{APP.year=parseInt(document.getElementById('yearInput').value)||2025;renderCalendar();});
@@ -250,20 +256,13 @@ document.getElementById('prevMonth').addEventListener('click',()=>{APP.month=(AP
 document.getElementById('nextMonth').addEventListener('click',()=>{APP.month=(APP.month+1)%12;document.getElementById('monthInput').value=APP.month+1;renderCalendar();});
 document.getElementById('monthInput').addEventListener('change',()=>{APP.month=(parseInt(document.getElementById('monthInput').value)-1)||0;renderCalendar();});
 
-// -------------------- Geolocation --------------------
-if(navigator.geolocation){
-  navigator.geolocation.getCurrentPosition(pos=>{
-    APP.lat=pos.coords.latitude;
-    APP.lon=pos.coords.longitude;
-    renderCalendar();
-  });
-}
+// ------------------- Geolocation -------------------
+if(navigator.geolocation){navigator.geolocation.getCurrentPosition(pos=>{APP.lat=pos.coords.latitude;APP.lon=pos.coords.longitude;renderCalendar();});}
 
-// -------------------- Init --------------------
+// ------------------- Init -------------------
 document.getElementById('yearInput').value=APP.year;
 document.getElementById('monthInput').value=APP.month+1;
 renderCalendar();
 </script>
 </body>
 </html>
-
