@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hindu Panchanga 2025–Infinite</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffffff">
+<style>
+html,body{margin:0;padding:0;font-family:sans-serif;background:#f5f5f5;color:#222;display:flex;justify-content:center;align-items:center;min-height:100vh;}
+#app{background:#fff;border-radius:20px;border:1px solid #ccc;padding:25px;width:600px;max-width:95%;box-shadow:0 8px 20px rgba(0,0,0,0.15);position:relative;font-size:1.1em;display:flex;flex-direction:column;align-items:center;}
+h1{text-align:center;margin:0 0 10px 0;}
+#inputs{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:15px;}
+#inputs input{width:60px;padding:8px;border-radius:8px;border:1px solid #ccc;text-align:center;}
+#inputs button{padding:6px 12px;border-radius:6px;border:1px solid #ccc;background:#e0e0e0;cursor:pointer;}
+#inputs button:hover{background:#d0d0d0;}
+#calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;width:100%;}
+.weekday,.day{text-align:center;padding:10px;border-radius:8px;}
+.weekday{font-weight:bold;background:#f0f0f0;}
+.day{background:#fafafa;transition:0.2s;cursor:pointer;}
+.day:hover{background:#e8f0fe;}
+.day.festival{background:#ffd699;}
+.day.selected{background:#90caf9;color:#fff;}
+#day-details{margin-top:15px;font-size:0.95em;white-space:pre-line;background:#f9f9f9;padding:12px;border-radius:8px;border:1px solid #ddd;max-height:50vh;overflow-y:auto;width:100%;}
+#toggleDark{position:absolute;top:15px;right:15px;width:40px;height:40px;background:#e0e0e0;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:20px;}
+#about-section{margin-top:15px;width:100%;}
+#aboutToggle,#installBtn{padding:6px 12px;border-radius:6px;border:1px solid #ccc;background:#e0e0e0;cursor:pointer;margin:5px;}
+#aboutToggle:hover,#installBtn:hover{background:#d0d0d0;}
+#aboutText{display:none;margin-top:10px;background:#f1f1f1;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:0.9em;}
+footer{margin-top:10px;text-align:center;color:#555;font-size:0.85em;}
+.dark body{background:#1f1f1f;color:#eee;}
+.dark #app{background:#2b2b2b;color:#eee;border:1px solid #444;}
+.dark .weekday{background:#3a3a3a;}
+.dark .day{background:#3a3a3a;color:#eee;}
+.dark .day:hover{background:#505050;}
+.dark .day.festival{background:#ffb74d;color:#000;}
+.dark #day-details{background:#3a3a3a;border:1px solid #555;color:#eee;}
+.dark #toggleDark{background:#444;color:#eee;}
+.dark #inputs button{background:#555;color:#eee;border:1px solid #666;}
+.dark #inputs button:hover{background:#666;}
+.dark #aboutText{background:#444;border:1px solid #666;color:#eee;}
+@media screen and (max-width:600px){#app{width:95%;padding:15px;font-size:1em;}#inputs input{width:50px;padding:6px;}#inputs button{padding:5px 8px;font-size:0.85em;} .weekday,.day{padding:8px;font-size:0.85em;}#day-details{font-size:0.9em;padding:10px;max-height:40vh;}#aboutText{font-size:0.85em;}}
+</style>
+</head>
+<body>
+<div id="app">
+<h1>Hindu Panchanga</h1>
+<div id="toggleDark">🌓</div>
+<div id="inputs">
+  <button id="prevYear">« Year</button>
+  <input type="number" id="yearInput" value="2025">
+  <button id="nextYear">Year »</button>
+  <button id="prevMonth">« Month</button>
+  <input type="number" id="monthInput" min="1" max="12" value="1">
+  <button id="nextMonth">Month »</button>
+</div>
+<div id="calendar"></div>
+<div id="day-details"></div>
+<div id="about-section">
+  <button id="aboutToggle">About</button>
+  <button id="installBtn">Install App</button>
+  <div id="aboutText">
+    The app is developed by <strong>Manik Roy</strong> (<a href="mailto:astromerty@gmail.com">astromerty@gmail.com</a>), a dedicated programmer creating intuitive, feature-rich, and user-friendly applications, focused on innovation and seamless digital experiences.
+  </div>
+</div>
+<footer>© Manik Roy 2025. All Rights Reserved.</footer>
+<script>
+// Dark mode toggle
+document.getElementById('toggleDark').addEventListener('click',()=>document.body.classList.toggle('dark'));
+// About toggle
+document.getElementById('aboutToggle').addEventListener('click', ()=>{ const aboutText=document.getElementById('aboutText'); aboutText.style.display = aboutText.style.display==='none'?'block':'none';});
+// App state
+let APP={lat:23.8103,lon:90.4125,month:0,year:2025};
+
+// Utilities
+function formatTime12h(time){
+  const h=Math.floor(time);
+  const m=Math.round((time-h)*60);
+  const ampm=h>=12?"PM":"AM";
+  const hour=h%12||12;
+  return `${hour}:${m.toString().padStart(2,'0')} ${ampm}`;
+}
+
+// Sunrise/Sunset calculation (approx)
+function calculateSunTimes(date,lat,lon){
+  const rad=Math.PI/180;
+  const N=(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())-Date.UTC(date.getFullYear(),0,0))/(1000*60*60*24);
+  const decl=23.45*Math.sin(rad*360*(284+N)/365);
+  const ws=Math.acos(-Math.tan(lat*rad)*Math.tan(decl*rad));
+  const dayLength=2*ws/15;
+  const solarNoon=12-(lon/15);
+  const sunrise=solarNoon-dayLength/2;
+  const sunset=solarNoon+dayLength/2;
+  return {sunrise,sunset};
+}
+
+// Muhurtas
+function calculateMuhurtas(date,lat,lon){
+  const sun=calculateSunTimes(date,lat,lon);
+  const weekday=date.getDay();
+  const dayLength=sun.sunset-sun.sunrise;
+  const part=dayLength/8;
+  const rahuOffsets=[1,7,4,6,2,5,3];
+  const rahuStart=sun.sunrise+rahuOffsets[weekday]*part/8;
+  const rahuEnd=rahuStart+part;
+  const muhurtas=[
+    {name:"Rahu Kalam",time:[rahuStart,rahuEnd],meaning:"Generally inauspicious; avoid starting new work."},
+    {name:"Yamaganda",time:[sun.sunrise+part*0.5,sun.sunrise+part*1.5],meaning:"Avoid for new ventures."},
+    {name:"Gulika",time:[sun.sunrise+part*1,sun.sunrise+part*2],meaning:"Avoid for important works."},
+    {name:"Abhijit Muhurta",time:[11.4,12.4],meaning:"Highly auspicious for rituals and ceremonies."},
+    {name:"Amrit Kaal",time:[6,7.5],meaning:"Very auspicious for rituals and ceremonies."},
+    {name:"Chandra Kaal",time:[15,16.5],meaning:"Good for starting journeys or new projects."},
+    {name:"Shubh Muhurta Morning",time:[6,8],meaning:"Generally favorable for new work."},
+    {name:"Shubh Muhurta Evening",time:[16,18],meaning:"Good for important tasks and ceremonies."},
+    {name:"Lakshmi Muhurta",time:[9,10],meaning:"Auspicious for wealth-related ceremonies."},
+    {name:"Vijaya Muhurta",time:[14.5,15.5],meaning:"Very favorable for success-oriented tasks."},
+    {name:"Griha Pravesh Muhurta",time:[11,12],meaning:"Auspicious for housewarming."},
+    {name:"Vivah Muhurta",time:[8,9],meaning:"Best for weddings."},
+    {name:"Sthapana Muhurta",time:[10.5,11.5],meaning:"For temple or idol installations."},
+    {name:"Yatra Muhurta",time:[7,8],meaning:"Good for journeys and travels."},
+    {name:"Sampanna Muhurta",time:[12.5,13.5],meaning:"Auspicious for business openings."}
+  ];
+  return muhurtas;
+}
+
+// Festivals (sample)
+const festivalData={
+"2025-01-01":["New Year’s Day"],
+"2025-04-14":["Pohela Boishakh"],
+"2025-10-01":["Durga Puja"],
+"2026-01-01":["New Year’s Day"],
+"2026-04-14":["Pohela Boishakh"],
+"2026-09-20":["Durga Puja"]
+};
+
+// Panchanga
+function getPanchangaForDay(year,month,day){
+  const dateStr=`${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  const festivals=festivalData[dateStr]||[];
+  return {tithi:"SP10",yoga:"VS",karana:"BA",festivals};
+}
+
+// Calendar
+function renderCalendar(){
+  const cal=document.getElementById('calendar');
+  cal.innerHTML="";
+  const weekdays=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  weekdays.forEach(d=>{const w=document.createElement('div'); w.className='weekday'; w.textContent=d; cal.appendChild(w);});
+  const firstDay=new Date(APP.year,APP.month,1).getDay();
+  for(let i=0;i<firstDay;i++){const empty=document.createElement('div');cal.appendChild(empty);}
+  const daysInMonth=new Date(APP.year,APP.month+1,0).getDate();
+  for(let d=1;d<=daysInMonth;d++){
+    const dayDiv=document.createElement('div');
+    const dayData=getPanchangaForDay(APP.year,APP.month+1,d);
+    dayDiv.className='day'+(dayData.festivals.length>0?' festival':'');
+    dayDiv.textContent=d;
+    dayDiv.addEventListener('click',()=>showDayDetails(APP.year,APP.month+1,d));
+    cal.appendChild(dayDiv);
+  }
+}
+
+// Show day
+function showDayDetails(year,month,day){
+  const date=new Date(year,month-1,day);
+  const panch=getPanchangaForDay(year,month,day);
+  const muhurtas=calculateMuhurtas(date,APP.lat,APP.lon);
+  const details=`Date: ${day}-${month}-${year}
+Latitude: ${APP.lat.toFixed(4)}
+Longitude: ${APP.lon.toFixed(4)}
+Festivals: ${panch.festivals.join(", ")||"None"}
+Tithi: ${panch.tithi}
+Yoga: ${panch.yoga}
+Karana: ${panch.karana}
+
+Muhurtas:
+${muhurtas.map((m,i)=>`${i+1}. ${m.name}: ${formatTime12h(m.time[0])} - ${formatTime12h(m.time[1])} - ${m.meaning}`).join("\n")}
+`;
+  document.getElementById('day-details').textContent=details;
+}
+
+// Navigation
+document.getElementById('prevYear').addEventListener('click',()=>{APP.year--;document.getElementById('yearInput').value=APP.year;renderCalendar();});
+document.getElementById('nextYear').addEventListener('click',()=>{APP.year++;document.getElementById('yearInput').value=APP.year;renderCalendar();});
+document.getElementById('yearInput').addEventListener('change',()=>{APP.year=parseInt(document.getElementById('yearInput').value)||2025;renderCalendar();});
+document.getElementById('prevMonth').addEventListener('click',()=>{APP.month=(APP.month+11)%12;document.getElementById('monthInput').value=APP.month+1;renderCalendar();});
+document.getElementById('nextMonth').addEventListener('click',()=>{APP.month=(APP.month+1)%12;document.getElementById('monthInput').value=APP.month+1;renderCalendar();});
+document.getElementById('monthInput').addEventListener('change',()=>{APP.month=(parseInt(document.getElementById('monthInput').value)-1)||0;renderCalendar();});
+
+// Auto geolocation
+if(navigator.geolocation){navigator.geolocation.getCurrentPosition(pos=>{APP.lat=pos.coords.latitude;APP.lon=pos.coords.longitude;renderCalendar();});}
+
+// PWA install
+let deferredPrompt;
+const installBtn = document.getElementById('installBtn');
+installBtn.style.display = 'none';
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBtn.style.display = 'block';
+});
+installBtn.addEventListener('click', async () => {
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if(outcome === 'accepted'){ console.log('App installed'); }
+    deferredPrompt = null;
+    installBtn.style.display = 'none';
+  }
+});
+
+// Init
+APP.month=new Date().getMonth();
+APP.year=new Date().getFullYear();
+document.getElementById('yearInput').value=APP.year;
+document.getElementById('monthInput').value=APP.month+1;
+renderCalendar();
+</script>
+</body>
+</html>
